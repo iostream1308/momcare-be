@@ -46,3 +46,55 @@ def get_user_by_email(db: Session, email: str):
 
 def get_user_by_role(db: Session, role: int):
     return db.query(models.User).filter(models.User.role == role).all()
+
+def make_call_appointment(db: Session, appointment: schemas.CallAppointment):
+    db_appointment = models.CallAppointment(time=datetime.utcnow(), form=appointment.form,
+                                            doctorId=appointment.doctorId,
+                                            patientId=appointment.patientId,
+                                            state=models.AppoState.UNCOMFIRM)
+    db.add(db_appointment)
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
+def make_hospital_appointment(db: Session, appointment: schemas.HospitalAppointment):
+    db_appointment = models.HospitalAppointment(time=datetime.utcnow(),
+                                                hospitalId=appointment.hospitalId,
+                                                patientId=appointment.patientId,
+                                                state=models.AppoState.UNCOMFIRM)
+    db.add(db_appointment)
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
+def change_state_call_appointment(db: Session, callAppointmentId: int, state: models.AppoState):
+    db.query(models.CallAppointment).filter(models.CallAppointment.callAppointmentId == callAppointmentId).update({
+        "state": state
+    })
+    db.commit()
+    return "ok"
+
+def change_state_hospital_appointment(db: Session, hospitalAppointmentId: int, state: models.AppoState):
+    db.query(models.HospitalAppointment).filter(models.HospitalAppointment.hospitalAppointmentId == hospitalAppointmentId).update({
+        "state": state
+    })
+    db.commit()
+    return "ok"
+
+def add_doctor_comment(db: Session, comment: schemas.DoctorComment):
+    db_comment = models.DoctorComment(time=datetime.utcnow(), patientId=comment.patientId,
+                                      doctorId=comment.doctorId,
+                                      comment=comment.comment)
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+def add_hospital_comment(db: Session, comment: schemas.HospitalCommentBase):
+    db_comment = models.DoctorComment(time=datetime.utcnow(), patientId=comment.patientId,
+                                      hospitalId=comment.hospitalId,
+                                      comment=comment.comment)
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment

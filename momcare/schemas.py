@@ -70,23 +70,23 @@ class Doctor(BaseModel):
         orm_mode = True
         
 class DoctorComment(BaseModel):
-    doctorCommentId: int
-    time: datetime
+    # doctorCommentId: int
+    # time: datetime
     patientId: int
     doctorId: int
     comment: str
-    point: float
+    # point: float
 
     class Config:
         orm_mode = True
         
 class HospitalCommentBase(BaseModel):
-    hospitalCommentId: int
-    time: datetime
+    # hospitalCommentId: int
+    # time: datetime
     patientId: int
     hospitalId: int
     comment: str
-    point: float
+    # point: float
 
     class Config:
         orm_mode = True
@@ -137,23 +137,23 @@ class Call(BaseModel):
         orm_mode = True
 
 class CallAppointment(BaseModel):
-    callAppointmentId: int
-    time: datetime
+    # callAppointmentId: int
+    # time: datetime
     form: str
     doctorId: int
     patientId: int
-    state: AppoState
-    calls: List[Call] = []
+    # state: AppoState
+    # calls: List[Call] = []
 
     class Config:
         orm_mode = True   
         
 class HospitalAppointment(BaseModel):
-    hospitalAppointmentId: int
-    time: datetime
+    # hospitalAppointmentId: int
+    # time: datetime
     hospitalId: int
     patientId: int
-    state: AppoState
+    # state: AppoState
 
     class Config:
         orm_mode = True

@@ -70,3 +70,27 @@ def update(email: str, new_pass: str, db: Session = Depends(get_db)):
         return None
     user_update = crud.update_user(db, email, new_pass)
     return user_update
+
+@app.post("/make_call_appointment/", response_model=schemas.CallAppointment)
+def make_call_appointment(appointment: schemas.CallAppointment, db: Session = Depends(get_db)):
+    return crud.make_call_appointment(db, appointment)
+
+@app.post("/make_hospital_appointment/", response_model=schemas.HospitalAppointment)
+def make_hospital_appointment(appointment: schemas.HospitalAppointment, db: Session = Depends(get_db)):
+    return crud.make_hospital_appointment(db, appointment)
+
+@app.post("/change_state_call_appointment/", status_code=status.HTTP_201_CREATED)
+def change_state_call_appointment(callAppointmentId: int, state: models.AppoState, db: Session = Depends(get_db)):
+    return crud.change_state_call_appointment(db, callAppointmentId, state)
+
+@app.post("/change_state_hospital_appointment/", status_code=status.HTTP_201_CREATED)
+def change_state_hospital_appointment(hospitalAppointmentId: int, state: models.AppoState, db: Session = Depends(get_db)):
+    return crud.change_state_hospital_appointment(db, hospitalAppointmentId, state)
+
+@app.post("/add_doctor_comment/", response_model=schemas.DoctorComment)
+def add_doctor_comment(comment: schemas.DoctorComment, db: Session = Depends(get_db)):
+    return crud.add_doctor_comment(db, comment)
+
+@app.post("/add_hospital_comment/", response_model=schemas.HospitalCommentBase)
+def add_hospital_comment(comment: schemas.HospitalCommentBase, db: Session = Depends(get_db)):
+    return crud.add_hospital_comment(db, comment)
