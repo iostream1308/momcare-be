@@ -91,7 +91,7 @@ def add_doctor_comment(db: Session, comment: schemas.DoctorComment):
     return db_comment
 
 def add_hospital_comment(db: Session, comment: schemas.HospitalCommentBase):
-    db_comment = models.DoctorComment(time=datetime.utcnow(), patientId=comment.patientId,
+    db_comment = models.HospitalComment(time=datetime.utcnow(), patientId=comment.patientId,
                                       hospitalId=comment.hospitalId,
                                       comment=comment.comment)
     db.add(db_comment)
