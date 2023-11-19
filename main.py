@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from fastapi.responses import JSONResponse, PlainTextResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 
 from momcare import crud, models, schemas
@@ -71,21 +72,39 @@ def update(email: str, new_pass: str, db: Session = Depends(get_db)):
     user_update = crud.update_user(db, email, new_pass)
     return user_update
 
-@app.post("/make_call_appointment/", response_model=schemas.CallAppointment)
+
+# Appointment
+
+@app.post("/make_call_appointment/")
 def make_call_appointment(appointment: schemas.CallAppointment, db: Session = Depends(get_db)):
     return crud.make_call_appointment(db, appointment)
+
+@app.post("/change_time_call_appointment/", status_code=status.HTTP_201_CREATED)
+def change_time_call_appointment(user_id: int, callAppointmentId: int, time: datetime, db: Session = Depends(get_db)):
+    return crud.change_time_call_appointment(db, user_id, callAppointmentId, time)
+
+@app.post("/change_state_call_appointment/", status_code=status.HTTP_201_CREATED)
+def change_state_call_appointment(user_id: int, callAppointmentId: int, state: models.AppoState, db: Session = Depends(get_db)):
+    return crud.change_state_call_appointment(db, user_id, callAppointmentId, state)
 
 @app.post("/make_hospital_appointment/", response_model=schemas.HospitalAppointment)
 def make_hospital_appointment(appointment: schemas.HospitalAppointment, db: Session = Depends(get_db)):
     return crud.make_hospital_appointment(db, appointment)
 
-@app.post("/change_state_call_appointment/", status_code=status.HTTP_201_CREATED)
-def change_state_call_appointment(callAppointmentId: int, state: models.AppoState, db: Session = Depends(get_db)):
-    return crud.change_state_call_appointment(db, callAppointmentId, state)
+@app.post("/change_time_hospital_appointment/", status_code=status.HTTP_201_CREATED)
+def change_time_call_appointment(user_id: int, hospitalAppointmentId: int, time: datetime, db: Session = Depends(get_db)):
+    return crud.change_time_hospital_appointment(db, user_id, hospitalAppointmentId, time)
 
 @app.post("/change_state_hospital_appointment/", status_code=status.HTTP_201_CREATED)
-def change_state_hospital_appointment(hospitalAppointmentId: int, state: models.AppoState, db: Session = Depends(get_db)):
-    return crud.change_state_hospital_appointment(db, hospitalAppointmentId, state)
+def change_state_hospital_appointment(user_id: int, hospitalAppointmentId: int, state: models.AppoState, db: Session = Depends(get_db)):
+    return crud.change_state_hospital_appointment(db, user_id, hospitalAppointmentId, state)
+
+@app.get("/users/{user_id}/appointments/")
+def get_appointments_of_user(user_id: int, db: Session = Depends(get_db)):
+    return crud.get_appointments_of_user(db, user_id)
+
+
+# Comment
 
 @app.post("/add_doctor_comment/", response_model=schemas.DoctorComment)
 def add_doctor_comment(comment: schemas.DoctorComment, db: Session = Depends(get_db)):
@@ -94,3 +113,11 @@ def add_doctor_comment(comment: schemas.DoctorComment, db: Session = Depends(get
 @app.post("/add_hospital_comment/", response_model=schemas.HospitalCommentBase)
 def add_hospital_comment(comment: schemas.HospitalCommentBase, db: Session = Depends(get_db)):
     return crud.add_hospital_comment(db, comment)
+
+@app.get("/doctors/{doctor_id}/comments/")
+def get_doctor_comments_by_doctor_id(doctor_id: int, db: Session = Depends(get_db)):
+    return crud.get_doctor_comments_by_doctor_id(db, doctor_id)
+
+@app.get("/hospitals/{hospital_id}/comments/")
+def get_doctor_comments_by_hospital_id(hospital_id: int, db: Session = Depends(get_db)):
+    return crud.get_hospital_comments_by_hospital_id(db, hospital_id)

@@ -19,8 +19,8 @@ class User(Base):
     role = Column(Enum(Role), nullable=False)
     googleId = Column(String(128))
 
-    patient = relationship('Patient', back_populates='user')
-    doctor = relationship('Doctor', back_populates='user')
+    # patient = relationship('Patient', back_populates='user')
+    # doctor = relationship('Doctor', back_populates='user')
     
 
 class Sex(str, enum.Enum):
@@ -40,30 +40,30 @@ class Patient(Base):
     phone = Column(String(20))
     address = Column(Text)
 
-    # Define the relationship with User
-    user = relationship('User', back_populates='patient')
+    # # Define the relationship with User
+    # user = relationship('User', back_populates='patient')
 
-    # Define the relationship with CallAppointment
-    call_appointments = relationship('CallAppointment', back_populates='patient')
+    # # Define the relationship with CallAppointment
+    # call_appointments = relationship('CallAppointment', back_populates='patient')
 
-    # Define the relationship with MedicalHistory
-    medical_history = relationship('MedicalHistory', back_populates='patient')
+    # # Define the relationship with MedicalHistory
+    # medical_history = relationship('MedicalHistory', back_populates='patient')
 
-    # Define the relationship with MedicalRecord
-    medical_records = relationship('MedicalRecord', back_populates='patient')
+    # # Define the relationship with MedicalRecord
+    # medical_records = relationship('MedicalRecord', back_populates='patient')
 
-    # Define the relationship with HospitalAppointment
-    hospital_appointments = relationship('HospitalAppointment', back_populates='patient')
+    # # Define the relationship with HospitalAppointment
+    # hospital_appointments = relationship('HospitalAppointment', back_populates='patient')
 
-    # Define the relationship with HospitalComment
-    hospital_comments = relationship('HospitalComment', back_populates='patient')
+    # # Define the relationship with HospitalComment
+    # hospital_comments = relationship('HospitalComment', back_populates='patient')
 
-    # Define the relationship with DoctorComment
-    doctor_comments = relationship('DoctorComment', back_populates='patient')
+    # # Define the relationship with DoctorComment
+    # doctor_comments = relationship('DoctorComment', back_populates='patient')
 
-    conversations = relationship('Conversation', back_populates='patient')
+    # conversations = relationship('Conversation', back_populates='patient')
     
-    payments = relationship('Payment', back_populates='patient')
+    # payments = relationship('Payment', back_populates='patient')
 
 
 class Hospital(Base):
@@ -76,9 +76,9 @@ class Hospital(Base):
     workingTime = Column(Text)
     point = Column(Float)
     
-    hospital_comments = relationship('HospitalComment', back_populates='hospital')
+    # hospital_comments = relationship('HospitalComment', back_populates='hospital')
 
-    hospital_appointments = relationship('HospitalAppointment', back_populates='hospital')
+    # hospital_appointments = relationship('HospitalAppointment', back_populates='hospital')
     
 class MedicalSpecialty(Base):
     __tablename__ = 'MedicalSpecialty'
@@ -87,7 +87,7 @@ class MedicalSpecialty(Base):
     englishName = Column(String(100))
     vietnameseName = Column(String(100))
     
-    doctors = relationship('Doctor', back_populates='medical_specialty')
+    # doctors = relationship('Doctor', back_populates='medical_specialty')
     
 class Doctor(Base):
     __tablename__ = 'Doctor'
@@ -106,20 +106,20 @@ class Doctor(Base):
     point = Column(Float)
 
     # Define the relationship with User
-    user = relationship('User', back_populates='doctor')
+    # user = relationship('User', back_populates='doctor')
 
-    # Define the relationship with MedicalSpecialty
-    medical_specialty = relationship('MedicalSpecialty', back_populates='doctors')
+    # # Define the relationship with MedicalSpecialty
+    # medical_specialty = relationship('MedicalSpecialty', back_populates='doctors')
 
-    # Define the relationship with CallAppointment
-    call_appointments = relationship('CallAppointment', back_populates='doctor')
+    # # Define the relationship with CallAppointment
+    # call_appointments = relationship('CallAppointment', back_populates='doctor')
 
-    # Define the relationship with Conversation
-    conversations = relationship('Conversation', back_populates='doctor')
+    # # Define the relationship with Conversation
+    # conversations = relationship('Conversation', back_populates='doctor')
 
-    doctor_comments = relationship('DoctorComment', back_populates='doctor')
+    # doctor_comments = relationship('DoctorComment', back_populates='doctor')
     
-    medical_records = relationship('MedicalRecord', back_populates='doctor')
+    # medical_records = relationship('MedicalRecord', back_populates='doctor')
     
     
 class DoctorComment(Base):
@@ -133,10 +133,10 @@ class DoctorComment(Base):
     point = Column(Float)
 
     # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='doctor_comments')
+    # patient = relationship('Patient', back_populates='doctor_comments')
 
-    # Define the relationship with Doctor
-    doctor = relationship('Doctor', back_populates='doctor_comments')
+    # # Define the relationship with Doctor
+    # doctor = relationship('Doctor', back_populates='doctor_comments')
     
     
 class HospitalComment(Base):
@@ -150,10 +150,10 @@ class HospitalComment(Base):
     point = Column(Float)
 
     # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='hospital_comments')
+    # patient = relationship('Patient', back_populates='hospital_comments')
 
-    # Define the relationship with Hospital
-    hospital = relationship('Hospital', back_populates='hospital_comments')
+    # # Define the relationship with Hospital
+    # hospital = relationship('Hospital', back_populates='hospital_comments')
     
     
 class ConvState(str, enum.Enum):
@@ -170,17 +170,17 @@ class Conversation(Base):
     state = Column(Enum(ConvState))
 
     # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='conversations')
+    # patient = relationship('Patient', back_populates='conversations')
 
-    # Define the relationship with Doctor
-    doctor = relationship('Doctor', back_populates='conversations')
+    # # Define the relationship with Doctor
+    # doctor = relationship('Doctor', back_populates='conversations')
 
-    # Define the relationship with Attachment
-    attachments = relationship('Attachment', back_populates='conversation')
+    # # Define the relationship with Attachment
+    # attachments = relationship('Attachment', back_populates='conversation')
 
-    messages = relationship('Message', back_populates='conversation')
+    # messages = relationship('Message', back_populates='conversation')
 
-    invoice = relationship('Invoice', back_populates='conversation')
+    # invoice = relationship('Invoice', back_populates='conversation')
     
     
 class MessState(str, enum.Enum):
@@ -199,7 +199,7 @@ class Message(Base):
     state = Column(Enum(MessState))
 
     # Define the relationship with Conversation
-    conversation = relationship('Conversation', back_populates='messages')
+    # conversation = relationship('Conversation', back_populates='messages')
     
     
 class Attachment(Base):
@@ -213,7 +213,7 @@ class Attachment(Base):
     state = Column(Enum(MessState))
 
     # Define the relationship with Conversation
-    conversation = relationship('Conversation', back_populates='attachments')
+    # conversation = relationship('Conversation', back_populates='attachments')
 
 
 class AppoState(str, enum.Enum):
@@ -233,15 +233,15 @@ class CallAppointment(Base):
     state = Column(Enum(AppoState))
 
     # Define the relationship with Doctor
-    doctor = relationship('Doctor', back_populates='call_appointments')
+    # doctor = relationship('Doctor', back_populates='call_appointments')
 
-    # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='call_appointments')
+    # # Define the relationship with Patient
+    # patient = relationship('Patient', back_populates='call_appointments')
 
-    # Define the relationship with Call
-    calls = relationship('Call', back_populates='call_appointment')
+    # # Define the relationship with Call
+    # calls = relationship('Call', back_populates='call_appointment')
 
-    invoice = relationship('Invoice', back_populates='call_appointment')
+    # invoice = relationship('Invoice', back_populates='call_appointment')
     
 
 class Call(Base):
@@ -255,7 +255,7 @@ class Call(Base):
     link = Column(String(500))
 
     # Define the relationship with CallAppointment
-    call_appointment = relationship('CallAppointment', back_populates='calls')
+    # call_appointment = relationship('CallAppointment', back_populates='calls')
     
     
 class HospitalAppointment(Base):
@@ -268,10 +268,10 @@ class HospitalAppointment(Base):
     state = Column(Enum(AppoState))
 
     # Define the relationship with Hospital
-    hospital = relationship('Hospital', back_populates='hospital_appointments')
+    # hospital = relationship('Hospital', back_populates='hospital_appointments')
 
-    # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='hospital_appointments')
+    # # Define the relationship with Patient
+    # patient = relationship('Patient', back_populates='hospital_appointments')
     
     
     
@@ -284,9 +284,9 @@ class MedicalHistory(Base):
     existingDiseases = Column(Text)
 
     # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='medical_history')
+    # patient = relationship('Patient', back_populates='medical_history')
 
-    medical_records = relationship('MedicalRecord', back_populates='medical_history')
+    # medical_records = relationship('MedicalRecord', back_populates='medical_history')
 
     
     
@@ -302,15 +302,15 @@ class MedicalRecord(Base):
     note = Column(Text)
 
     # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='medical_records')
+    # patient = relationship('Patient', back_populates='medical_records')
 
-    # Define the relationship with Doctor
-    doctor = relationship('Doctor', back_populates='medical_records')
+    # # Define the relationship with Doctor
+    # doctor = relationship('Doctor', back_populates='medical_records')
 
-    # Define the relationship with MedicalHistory
-    medical_history = relationship('MedicalHistory', back_populates='medical_records')
+    # # Define the relationship with MedicalHistory
+    # medical_history = relationship('MedicalHistory', back_populates='medical_records')
     
-    prescription = relationship('Prescription', back_populates='medical_record')
+    # prescription = relationship('Prescription', back_populates='medical_record')
 
     
 class Prescription(Base):
@@ -323,7 +323,7 @@ class Prescription(Base):
     note = Column(Text)
 
     # Define the relationship with MedicalRecord
-    medical_record = relationship('MedicalRecord', back_populates='prescription')
+    # medical_record = relationship('MedicalRecord', back_populates='prescription')
     
 
     
@@ -352,13 +352,13 @@ class Invoice(Base):
     note = Column(Text)
     status = Column(Enum(InvoiceStatus))
 
-    # Define the relationship with CallAppointment
-    call_appointment = relationship('CallAppointment', back_populates='invoice')
+    # # Define the relationship with CallAppointment
+    # call_appointment = relationship('CallAppointment', back_populates='invoice')
 
-    # Define the relationship with Conversation
-    conversation = relationship('Conversation', back_populates='invoice')
+    # # Define the relationship with Conversation
+    # conversation = relationship('Conversation', back_populates='invoice')
 
-    transactions = relationship('Transaction', back_populates='invoice')
+    # transactions = relationship('Transaction', back_populates='invoice')
     
     
 class PaymentStatus(str, enum.Enum):
@@ -380,9 +380,9 @@ class Payment(Base):
     paymentMethod = Column(Enum(PaymentMethod))
 
     # Define the relationship with Patient
-    patient = relationship('Patient', back_populates='payments')
+    # patient = relationship('Patient', back_populates='payments')
 
-    transactions = relationship('Transaction', back_populates='payment')
+    # transactions = relationship('Transaction', back_populates='payment')
 
     
     
@@ -397,8 +397,8 @@ class Transaction(Base):
     description = Column(Text)
 
     # Define the relationship with Invoice and Payment
-    invoice = relationship('Invoice', back_populates='transactions')
-    payment = relationship('Payment', back_populates='transactions')
+    # invoice = relationship('Invoice', back_populates='transactions')
+    # payment = relationship('Payment', back_populates='transactions')
     
 
     

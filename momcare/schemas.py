@@ -75,7 +75,7 @@ class DoctorComment(BaseModel):
     patientId: int
     doctorId: int
     comment: str
-    # point: float
+    point: float
 
     class Config:
         orm_mode = True
@@ -86,7 +86,7 @@ class HospitalCommentBase(BaseModel):
     patientId: int
     hospitalId: int
     comment: str
-    # point: float
+    point: float
 
     class Config:
         orm_mode = True
@@ -138,7 +138,7 @@ class Call(BaseModel):
 
 class CallAppointment(BaseModel):
     # callAppointmentId: int
-    # time: datetime
+    time: datetime
     form: str
     doctorId: int
     patientId: int
@@ -150,7 +150,7 @@ class CallAppointment(BaseModel):
         
 class HospitalAppointment(BaseModel):
     # hospitalAppointmentId: int
-    # time: datetime
+    time: datetime
     hospitalId: int
     patientId: int
     # state: AppoState
