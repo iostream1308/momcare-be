@@ -17,6 +17,9 @@ from pprint import pprint
 from . import models, schemas
 from .models import Role
 
+from momcare.models import *
+import pytz
+
 def check_registered_user(db: Session, email: str):
     user = db.query(models.User).filter(models.User.email == email).first()
     if user is None:
@@ -159,3 +162,135 @@ def get_user_by_email(db: Session, email: str):
         return "not registered"
     return db.query(models.User).filter(models.User.email == email).first()
 
+def get_user_by_role(db: Session, role: int):
+    return db.query(models.User).filter(models.User.role == role).all()
+
+def check_permission(db: Session, user_id: int, role: Role):
+    return db.query(User).filter(User.userId == user_id).first().role == role
+
+# Appointment
+
+def make_call_appointment(db: Session, appointment: schemas.CallAppointment):
+    if appointment.time <= datetime.utcnow().replace(tzinfo=pytz.utc):
+        return "cannot choose a time in the past"
+
+    appointments = db.query(CallAppointment).filter(
+        CallAppointment.doctorId == appointment.doctorId).order_by(getattr(CallAppointment, "time")).all()
+    for app in appointments:
+        if (appointment.time <= (app.time + timedelta(hours=1)).replace(tzinfo=pytz.utc)) and (
+            appointment.time + timedelta(hours=1) >= app.time.replace(tzinfo=pytz.utc)):
+            return "doctor is busy"
+    
+    appointments = db.query(CallAppointment).filter(
+        CallAppointment.patientId == appointment.patientId).order_by(getattr(CallAppointment, "time")).all()
+    for app in appointments:
+        if (appointment.time <= (app.time + timedelta(hours=1)).replace(tzinfo=pytz.utc)) and (
+            appointment.time + timedelta(hours=1) >= app.time.replace(tzinfo=pytz.utc)):
+            return "patient is busy"
+
+    db_appointment = models.CallAppointment(time=appointment.time, form=appointment.form,
+                                            doctorId=appointment.doctorId,
+                                            patientId=appointment.patientId,
+                                            state=models.AppoState.UNCOMFIRM)
+    db.add(db_appointment)
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
+def make_hospital_appointment(db: Session, appointment: schemas.HospitalAppointment):
+    db_appointment = models.HospitalAppointment(time=appointment.time,
+                                                hospitalId=appointment.hospitalId,
+                                                patientId=appointment.patientId,
+                                                state=models.AppoState.UNCOMFIRM)
+    db.add(db_appointment)
+    db.commit()
+    db.refresh(db_appointment)
+    return db_appointment
+
+def change_time_call_appointment(db: Session, user_id: int, callAppointmentId: int, time: datetime):
+    if not check_permission(db, user_id, Role.DOCTOR):
+        return "not permission"
+    db.query(models.CallAppointment).filter(models.CallAppointment.callAppointmentId == callAppointmentId).update({
+        "time": time
+    })
+    db.commit()
+    return "ok"
+
+def change_time_hospital_appointment(db: Session, user_id: int, hospitalAppointmentId: int, time: datetime):
+    if not check_permission(db, user_id, Role.HOSPITAL):
+        return "not permission"
+    db.query(models.HospitalAppointment).filter(models.HospitalAppointment.hospitalAppointmentId == hospitalAppointmentId).update({
+        "time": time
+    })
+    db.commit()
+    return "ok"
+
+def change_state_hospital_appointment(db: Session, user_id: int, hospitalAppointmentId: int, state: models.AppoState):
+    if not check_permission(db, user_id, Role.HOSPITAL):
+        return "not permission"
+    db.query(models.HospitalAppointment).filter(models.HospitalAppointment.hospitalAppointmentId == hospitalAppointmentId).update({
+        "state": state
+    })
+    db.commit()
+    return "ok"
+
+def change_state_call_appointment(db: Session, user_id: int, callAppointmentId: int, state: models.AppoState):
+    if not check_permission(db, user_id, Role.DOCTOR):
+        return "not permission"
+    db.query(models.CallAppointment).filter(models.CallAppointment.callAppointmentId == callAppointmentId).update({
+        "state": state
+    })
+    db.commit()
+    return "ok"
+
+def get_appointments_of_user(db: Session, user_id: int):
+    user = db.query(User).filter(User.userId == user_id).first()
+    if user.role == Role.PATIENT:
+        return db.query(CallAppointment).filter(CallAppointment.patientId
+                                                == db.query(Patient).filter(Patient.userId == user_id).first().patientId
+                                                ).order_by(getattr(CallAppointment, "time")).all()
+    elif user.role == Role.DOCTOR:
+        return db.query(CallAppointment).filter(CallAppointment.doctorId
+                                                == db.query(Doctor).filter(Doctor.userId == user_id).first().doctorId
+                                                ).order_by(getattr(CallAppointment, "time")).all()
+    elif user.role == Role.HOSPITAL:
+        return db.query(HospitalAppointment).filter(HospitalAppointment.hospitalId
+                                                == db.query(Hospital).filter(Hospital.userId == user_id).first().hospitalId
+                                                ).order_by(getattr(HospitalAppointment, "time")).all()
+    
+
+# Comment
+
+def add_doctor_comment(db: Session, comment: schemas.DoctorComment):
+    db_comment = models.DoctorComment(time=datetime.utcnow(), patientId=comment.patientId,
+                                      doctorId=comment.doctorId,
+                                      comment=comment.comment,
+                                      point=comment.point)
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+def add_hospital_comment(db: Session, comment: schemas.HospitalCommentBase):
+    db_comment = models.HospitalComment(time=datetime.utcnow(), patientId=comment.patientId,
+                                        hospitalId=comment.hospitalId,
+                                        comment=comment.comment,
+                                        point=comment.point)
+    db.add(db_comment)
+    db.commit()
+    db.refresh(db_comment)
+    return db_comment
+
+def get_doctor_comments_by_doctor_id(db: Session, doctor_id: int):
+    res = []
+    comments = db.query(DoctorComment).filter(DoctorComment.doctorId == doctor_id).all()
+    for comment in comments:
+        res.append([comment, db.query(Patient).filter(Patient.patientId == comment.patientId).first()])
+    return res[::-1]
+
+def get_hospital_comments_by_hospital_id(db: Session, hospital_id: int):
+    res = []
+    comments = db.query(HospitalComment).filter(HospitalComment.hospitalId == hospital_id).all()
+    for comment in comments:
+        res.append([comment, db.query(Patient).filter(Patient.patientId == comment.patientId).first()])
+    return res[::-1]

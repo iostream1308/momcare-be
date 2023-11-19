@@ -139,7 +139,7 @@ class Call(BaseModel):
 
 class CallAppointment(BaseModel):
     # callAppointmentId: int
-    # time: datetime
+    time: datetime
     form: str
     doctorId: int
     patientId: int
@@ -154,7 +154,7 @@ class HospitalAppointment(BaseModel):
     time: datetime
     hospitalId: int
     patientId: int
-    state: AppoState
+    # state: AppoState
 
     class Config:
         orm_mode = True
