@@ -43,19 +43,69 @@ def get_db():
 def show():
     return "hello"
 
-@app.post("/usercreate/", response_model=schemas.UserBase)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="username already registered")
-    return crud.create_user(db, user)
+@app.post("/create_patient/")
+def create_patient(patient: schemas.Patient, db: Session = Depends(get_db)):
+    return crud.create_patient(db, patient)
+
+@app.post("/create_hospital/")
+def create_hospital(hospital: schemas.Hospital, db: Session = Depends(get_db)):
+    return crud.create_hospital(db, hospital)
+
+@app.post("/create_medspec/")
+def create_medspec(medspec: schemas.MedicalSpecialty, db: Session = Depends(get_db)):
+    return crud.request_create_medicalSpeciality(db, medspec)
+
+@app.post("/create_doctor/")
+def create_doctor(doctor: schemas.Doctor, db: Session = Depends(get_db)):
+    return crud.request_register_doctor(db, doctor)
+
+@app.post("/change_pass/")
+def change_pass(email: str, new_pass: str, db: Session = Depends(get_db)):
+    return crud.change_password(db, email, new_pass)
+
+@app.get("/hospital/")
+def hospitals(db: Session = Depends(get_db)):
+    return crud.get_list_hospital(db)
+
+@app.get("/hospital/{id}")
+def hospitals(id: int, db: Session = Depends(get_db)):
+    return crud.get_hospital_by_id(db, id)
+
+@app.get("/login/")
+def login(email: str, password: str, db: Session = Depends(get_db)):
+    return crud.check_login(db, email, password)
+
+@app.get("/medspec/")
+def medicalSpecialty(db: Session = Depends(get_db)):
+    return crud.get_list_medicalSpecialty(db)
+
+@app.get("/medspec/{id}")
+def medicalSpecialty_by_id(id: int, db: Session = Depends(get_db)):
+    return crud.get_medicalSpecialty_by_id(db, id)
+
+@app.get("/medspec/vi/{vi}")
+def medicalSpecialty_by_vi(vi: str, db: Session = Depends(get_db)):
+    return crud.get_medicalSpecialty_by_vi(db, vi)
+
+@app.get("/medspec/en/{en}")
+def medicalSpecialty_by_en(en: str, db: Session = Depends(get_db)):
+    return crud.get_medicalSpecialty_by_en(db, en)
+
+@app.get("/doctor/")
+def doctor(db: Session = Depends(get_db)):
+    return crud.get_list_doctor(db)
+
+@app.get("/doctor/{id}")
+def doctor_by_id(id: int, db: Session = Depends(get_db)):
+    return crud.get_doctor_by_id(db, id)
+
+@app.get("/doctor/hospital/{id}")
+def doctor_by_hospitalid(id: int, db: Session = Depends(get_db)):
+    return crud.get_list_doctors_of_hospital(db, id)
 
 @app.get("/user/{email}")
-def read_user(email: str, db: Session = Depends(get_db)):
-    user = crud.get_user_by_email(db, email)
-    if user is None:
-        raise HTTPException(status_code=404, detail="user not found")
-    return user
+def user_by_email(email: str, db: Session = Depends(get_db)):
+    return crud.get_user_by_email(db, email)
 
 @app.get("/user/role/{role}")
 def user_by_role(role: int, db: Session = Depends(get_db)):

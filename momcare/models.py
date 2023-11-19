@@ -4,11 +4,11 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 
-class Role(int, enum.Enum):
-    ADMIN = 1
-    PATIENT = 2
-    DOCTOR = 3
-    HOSPITAL = 4
+class Role(str, enum.Enum):
+    ADMIN = 'ADMIN'
+    PATIENT = 'PATIENT'
+    DOCTOR = 'DOCTOR'
+    HOSPITAL = 'HOSPITAL'
     
 class User(Base):
     __tablename__ = 'User'
@@ -24,9 +24,9 @@ class User(Base):
     
 
 class Sex(str, enum.Enum):
-    MALE = 'male'
-    FEMALE = 'female'
-    NOT_MENTION = 'not_mention'   
+    MALE = 'MALE'
+    FEMALE = 'FEMALE'
+    NOT_MENTION = 'NOT_MENTION'   
 
 
 class Patient(Base):
@@ -99,7 +99,7 @@ class Doctor(Base):
     sex = Column(Enum(Sex))
     phone = Column(String(20))
     medicalSpecialtyId = Column(Integer, ForeignKey('MedicalSpecialty.medicalSpecialtyId'))
-    hospitalId = Column(Integer, ForeignKey('Hospital.hospitalID'))
+    hospitalId = Column(Integer, ForeignKey('Hospital.hospitalId'))
     degree = Column(String(300))
     consultingPriceViaMessage = Column(Float, default=0)
     consultingPriceViaCall = Column(Float, default=0)
@@ -174,7 +174,6 @@ class Conversation(Base):
 
     # # Define the relationship with Doctor
     # doctor = relationship('Doctor', back_populates='conversations')
-
     # # Define the relationship with Attachment
     # attachments = relationship('Attachment', back_populates='conversation')
 
@@ -184,8 +183,8 @@ class Conversation(Base):
     
     
 class MessState(str, enum.Enum):
-    SEEN = 'seen'
-    NOT_SEEN = 'not_seen'
+    SEEN = 'SEEN'
+    NOT_SEEN = 'NOT_SEEN'
     
     
 class Message(Base):
@@ -217,9 +216,9 @@ class Attachment(Base):
 
 
 class AppoState(str, enum.Enum):
-    CONFIRM = 'confirm'
-    UNCOMFIRM = 'unconfirm'
-    COMPLETED = 'completed'
+    CONFIRM = 'CONFIRM'
+    UNCOMFIRM = 'UNCOMFIRM'
+    COMPLETED = 'COMPLETED'
     
     
 class CallAppointment(Base):
@@ -240,7 +239,6 @@ class CallAppointment(Base):
 
     # # Define the relationship with Call
     # calls = relationship('Call', back_populates='call_appointment')
-
     # invoice = relationship('Invoice', back_populates='call_appointment')
     
 
@@ -253,7 +251,7 @@ class Call(Base):
     startTime = Column(DateTime)
     endTime = Column(DateTime)
     link = Column(String(500))
-
+    
     # Define the relationship with CallAppointment
     # call_appointment = relationship('CallAppointment', back_populates='calls')
     
@@ -328,15 +326,15 @@ class Prescription(Base):
 
     
 class Service(str, enum.Enum):
-    MESSAGE = 'message'
-    CALL = 'call'
-    BOTH = 'both'
+    MESSAGE = 'MESSAGE'
+    CALL = 'CALL'
+    BOTH = 'BOTH'
     
     
 class InvoiceStatus(str, enum.Enum):
-    PAID = 'paid'
-    UNPAID = 'unpaid'
-    PAST_DUE = 'past_due'
+    PAID = 'PAID'
+    UNPAID = 'UNPAID'
+    PAST_DUE = 'PAST_DUE'
     
     
 class Invoice(Base):
@@ -362,12 +360,12 @@ class Invoice(Base):
     
     
 class PaymentStatus(str, enum.Enum):
-    PAID = 'paid'
-    FAILED = 'failed'
+    PAID = 'PAID'
+    FAILED = 'FAILED'
     
 class PaymentMethod(str, enum.Enum):
-    CASH = 'cash'
-    BANKING = 'banking'
+    CASH = 'CASH'
+    BANKING = 'BANKING'
     
 class Payment(Base):
     __tablename__ = 'Payment'

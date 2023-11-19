@@ -8,44 +8,46 @@ from .models import Role, Sex, ConvState, MessState, AppoState, Service, Invoice
 class UserBase(BaseModel):
     email: str
     role: Role
-    googleId: str
 
 class UserCreate(UserBase):
     password: str
 
 class User(UserBase):
-    userId: int
+    # userId: int
     password_hash: str
     
 
     class Config:
         orm_mode = True
         
-class PatientBase(BaseModel):
+class Patient(BaseModel):
+    email: str
+    password: str
     name: str
     age: int
     sex: Sex
     phone: str
     address: str
 
-class Patient(PatientBase):
-    patientId: int
     class Config:
         orm_mode = True
         
 class Hospital(BaseModel):
-    hospitalId: int
-    userId: int
+    # hospitalId: int
+    # userId: int
+    email: str
+    password: str
     name: str
     address: str
     workingTime: str
-    point: float
+    # point: float
 
     class Config:
         orm_mode = True
         
 class MedicalSpecialty(BaseModel):
-    medicalSpecialtyid: int
+    # medicalSpecialtyid: int
+    creatorRole: Role 
     englishName: str
     vietnameseName: str
 
@@ -53,8 +55,12 @@ class MedicalSpecialty(BaseModel):
         orm_mode = True
         
 class Doctor(BaseModel):
-    doctorid: int 
-    userid: int
+    # doctorid: int 
+    # userid: int
+    creatorRole: Role
+    creatorId: int
+    email: str
+    password: str
     name: str
     age: int
     sex: Sex
@@ -64,7 +70,7 @@ class Doctor(BaseModel):
     degree: str
     consultingPriceViaMessage: float
     consultingPriceViaCall: float
-    point: float
+    # point: float
 
     class Config:
         orm_mode = True
@@ -75,7 +81,7 @@ class DoctorComment(BaseModel):
     patientId: int
     doctorId: int
     comment: str
-    point: float
+    # point: float
 
     class Config:
         orm_mode = True
@@ -86,13 +92,12 @@ class HospitalCommentBase(BaseModel):
     patientId: int
     hospitalId: int
     comment: str
-    point: float
+    # point: float
 
     class Config:
         orm_mode = True
         
 class Attachment(BaseModel):
-    attachmentId: int
     conversationId: int
     sender: int
     file: str
@@ -103,18 +108,15 @@ class Attachment(BaseModel):
         orm_mode = True        
 
 class Conversation(BaseModel):
-    conversationId: int
     patientId: int
     doctorId: int
     startTime: datetime
     state: ConvState
-    attachments: List[Attachment] = []
 
     class Config:
         orm_mode = True
 
 class Message(BaseModel):
-    messageId: int
     conversationId: int
     sender: int
     text: str
@@ -126,7 +128,6 @@ class Message(BaseModel):
 
 
 class Call(BaseModel):
-    callId: int
     callAppointmentId: int
     problems: str
     startTime: datetime
@@ -159,7 +160,6 @@ class HospitalAppointment(BaseModel):
         orm_mode = True
 
 class MedicalHistory(BaseModel):
-    medicalHistoryId: int
     patientId: int
     symptom: str
     existingDiseases: str
@@ -168,7 +168,6 @@ class MedicalHistory(BaseModel):
         orm_mode = True
 
 class MedicalRecord(BaseModel):
-    medicalRecordId: int
     patientId: int
     doctorId: int
     time: datetime
@@ -180,7 +179,6 @@ class MedicalRecord(BaseModel):
         orm_mode = True
 
 class Prescription(BaseModel):
-    prescriptionId: int
     medicalRecordId: int
     medicinesNameAndDosages: str
     usageTime: str
@@ -190,7 +188,6 @@ class Prescription(BaseModel):
         orm_mode = True     
 
 class Invoice(BaseModel):
-    invoiceId: int
     consultingServices: Service
     callAppointmentId: int
     conversationId: int
@@ -204,7 +201,6 @@ class Invoice(BaseModel):
         orm_mode = True
 
 class Payment(BaseModel):
-    paymentId: int
     patientId: int
     amount: float
     paymentTime: datetime
@@ -215,7 +211,6 @@ class Payment(BaseModel):
         orm_mode = True
 
 class Transaction(BaseModel):
-    transactionId: int
     invoiceId: int
     paymentId: int
     time: datetime
@@ -224,6 +219,3 @@ class Transaction(BaseModel):
 
     class Config:
         orm_mode = True
-        
-        
-        
