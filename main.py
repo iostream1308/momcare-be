@@ -76,6 +76,10 @@ def change_pass(email: str, new_pass: str, db: Session = Depends(get_db)):
 def hospitals(db: Session = Depends(get_db)):
     return crud.get_list_hospital(db)
 
+@app.get("/hospital/name/")
+def hospitals_by_name(name: str, db: Session = Depends(get_db)):
+    return crud.get_list_hospitals_by_name(db, name)
+
 @app.get("/hospital/{id}")
 def hospitals(id: int, db: Session = Depends(get_db)):
     return crud.get_hospital_by_id(db, id)
@@ -107,6 +111,10 @@ def medicalSpecialty_by_en(en: str, db: Session = Depends(get_db)):
 @app.get("/doctor/")
 def doctor(db: Session = Depends(get_db)):
     return crud.get_list_doctor(db)
+
+@app.get("/doctor/name/")
+def doctors_by_name(name: str, db: Session = Depends(get_db)):
+    return crud.get_list_doctors_by_name(db, name)
 
 @app.get("/doctor/{id}")
 def doctor_by_id(id: int, db: Session = Depends(get_db)):

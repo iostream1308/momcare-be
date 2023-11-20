@@ -64,6 +64,9 @@ def create_hospital(db: Session, hospital: schemas.Hospital):
 def get_list_hospital(db: Session):
     return db.query(models.Hospital).all()
 
+def get_list_hospitals_by_name(db: Session, name: str):
+    return db.query(models.Hospital).filter(models.Hospital.name.like(f"%{name}%")).all()
+
 def get_hospital_by_id(db: Session, id: int):
     return db.query(models.Hospital).filter(models.Hospital.hospitalId == id).first()
 
@@ -124,10 +127,10 @@ def get_medicalSpecialty_by_id(db: Session, id: int):
     return db.query(models.MedicalSpecialty).filter(models.MedicalSpecialty.medicalSpecialtyId == id).first()
 
 def get_medicalSpecialty_by_vi(db: Session, vi: int):
-    return db.query(models.MedicalSpecialty).filter(models.MedicalSpecialty.vietnameseName == vi).first()
+    return db.query(models.MedicalSpecialty).filter(models.MedicalSpecialty.vietnameseName.like(f"%{vi}%")).first()
 
 def get_medicalSpecialty_by_en(db: Session, en: int):
-    return db.query(models.MedicalSpecialty).filter(models.MedicalSpecialty.englishName == en).first()
+    return db.query(models.MedicalSpecialty).filter(models.MedicalSpecialty.vietnameseName.like(f"%{en}%")).first()
 
 def create_doctor(db: Session, doctor: schemas.Doctor):
     if check_registered_user(db, doctor.email) == "registered":
@@ -164,6 +167,9 @@ def get_doctor_by_id(db: Session, id: int):
 
 def get_list_doctors_of_hospital(db: Session, hospitalid: int):
     return db.query(models.Doctor).filter(models.Doctor.hospitalId == hospitalid).all()
+
+def get_list_doctors_by_name(db: Session, name: str):
+    return db.query(models.Doctor).filter(models.Doctor.name.like(f"%{name}%")).all()
     
 def change_password(db: Session, email: str, new_pass: str):
     if check_registered_user(db, email) == "not registered":
