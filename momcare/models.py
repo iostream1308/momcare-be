@@ -398,5 +398,10 @@ class Transaction(Base):
     # invoice = relationship('Invoice', back_populates='transactions')
     # payment = relationship('Payment', back_populates='transactions')
     
+class Token(Base):
+    __tablename__ = 'Token'
 
+    userId = Column(BigInteger, ForeignKey('User.userId'), primary_key=True, index=True)
+    token = Column(String(300))
+    expires = Column(Boolean)
     
