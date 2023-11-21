@@ -44,6 +44,7 @@ def get_db():
 def show():
     return "hello"
 
+@app.get("/check/")
 def get_current_user(token: str, db: Session = Depends(get_db)):
     # credentials_exception = HTTPException(
     #     status_code=401,
