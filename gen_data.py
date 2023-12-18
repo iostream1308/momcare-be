@@ -25,9 +25,9 @@ Doctor = Table('Doctor', metadata, autoload_with=engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-number_patient = 1000
+number_patient = 200
 number_hospital = 10
-number_doctor = 100
+number_doctor = 200
 
 sex = ['MALE', 'FEMALE', 'NOT_MENTION']
 for i in range(1, number_patient):
