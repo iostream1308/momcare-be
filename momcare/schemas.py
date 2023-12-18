@@ -101,8 +101,6 @@ class Attachment(BaseModel):
     conversationId: int
     sender: int
     file: str
-    time: datetime
-    state: MessState
 
     class Config:
         orm_mode = True        
@@ -120,8 +118,6 @@ class Message(BaseModel):
     conversationId: int
     sender: int
     text: str
-    time: datetime
-    state: MessState
 
     class Config:
         orm_mode = True

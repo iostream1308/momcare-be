@@ -1,17 +1,20 @@
 import email
 import imp
 from lib2to3.pgen2 import token
+import os
 from random import random
+import shutil
 from telnetlib import STATUS
+from datetime import datetime, date
 
-from fastapi import Depends, FastAPI, Query, Body, status, Form, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Query, Body, Response, status, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional, Set
 from pydantic import BaseModel, Field
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from PIL import Image
 
 
 from momcare import crud, models, schemas
@@ -20,7 +23,6 @@ from momcare.database import SessionLocal, engine
 
 
 models.Base.metadata.create_all(bind=engine)
-
 
 app = FastAPI()
 
@@ -44,13 +46,12 @@ def get_db():
 def show():
     return "hello"
 
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+#account
+
 @app.get("/check/")
 def get_current_user(token: str, db: Session = Depends(get_db)):
-    # credentials_exception = HTTPException(
-    #     status_code=401,
-    #     detail="Could not validate credentials",
-    #     headers={"WWW-Authenticate": "Bearer"},
-    # )
     return crud.verify_token(db, token)
 
 @app.post("/create_patient/")
@@ -144,7 +145,32 @@ def update(email: str, new_pass: str, db: Session = Depends(get_db)):
     user_update = crud.update_user(db, email, new_pass)
     return user_update
 
+@app.post("/user/up_img/")
+def upload_image(email: str, image: UploadFile = File(...), db: Session = Depends(get_db)):
+    old_name = image.filename
+    file_extension = os.path.splitext(old_name)[1]
+    user: models.User = crud.get_user_by_email(db, email)
+    file_name = f"{str(user.userId)}{file_extension}"
+    with open(os.path.join("image", "user", file_name), "wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
+    image_path = f"image/user/{file_name}"  
+    crud.save_img_of_user(db, email, image_path)
+    return {"filename": file_name, "file_path": image_path}
 
+@app.get("/user/get_img/")
+def get_image(email: str, db: Session = Depends(get_db)):
+    image_path = crud.get_path_img_of_user(db, email)  
+    if os.path.exists(image_path):
+        img = Image.open(image_path)
+        image_format = img.format.lower() 
+
+        return FileResponse(image_path, media_type=f"image/{image_format}")
+    else:
+        return Response(status_code=404)
+
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Appointment
 
 @app.post("/make_call_appointment/")
@@ -176,6 +202,7 @@ def get_appointments_of_user(user_id: int, db: Session = Depends(get_db)):
     return crud.get_appointments_of_user(db, user_id)
 
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Comment
 
 @app.post("/add_doctor_comment/", response_model=schemas.DoctorComment)
@@ -193,3 +220,49 @@ def get_doctor_comments_by_doctor_id(doctor_id: int, db: Session = Depends(get_d
 @app.get("/hospitals/{hospital_id}/comments/")
 def get_doctor_comments_by_hospital_id(hospital_id: int, db: Session = Depends(get_db)):
     return crud.get_hospital_comments_by_hospital_id(db, hospital_id)
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+# Message
+
+@app.get("/conversation/")
+def get_conversation(doctorid: int, patientid: int, db: Session = Depends(get_db)):
+    return crud.get_conversation(db, doctorid, patientid)
+
+
+@app.post("/send_mess/")
+def send_mess(message: schemas.Message, db: Session = Depends(get_db)):
+    return crud.send_mess(db, message)
+
+@app.post("/send_att/")
+def send_att(convid: int, sender: int, image: UploadFile = File(...), db: Session = Depends(get_db)):
+    convid = int(convid)
+    sender = int(sender)
+    old_name = image.filename
+    file_extension = os.path.splitext(old_name)[1]
+    att_id = crud.count_attachment(db, convid)
+    file_name = f"{str(convid) + '_' + str(att_id)}{file_extension}"
+    with open(os.path.join("attachment", file_name), "wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
+    image_path = f"attachment/{file_name}"  
+    crud.save_attachment(db, convid, sender, image_path)
+    return {"filename": file_name, "file_path": image_path}
+
+@app.get("/conversation/{convid}/mess")
+def get_conversation_mess(convid: int, db: Session = Depends(get_db)):
+    return crud.get_list_message_of_conversation_by_convid(db, convid)
+
+@app.get("/conversation/{convid}/att")
+def get_conversation_att(convid: int, db: Session = Depends(get_db)):
+    return crud.get_list_attachment_of_conversation_by_convid(db, convid)
+
+@app.get("/att/")
+def get_image(path: str):
+    if os.path.exists(path):
+        img = Image.open(path)
+        image_format = img.format.lower() 
+
+        return FileResponse(path, media_type=f"image/{image_format}")
+    else:
+        return Response(status_code=404)    
+

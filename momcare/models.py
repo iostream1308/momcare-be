@@ -18,6 +18,7 @@ class User(Base):
     password_hash = Column(String(128), nullable=False)
     role = Column(Enum(Role), nullable=False)
     googleId = Column(String(128))
+    img = Column(String(256))
 
     # patient = relationship('Patient', back_populates='user')
     # doctor = relationship('Doctor', back_populates='user')
@@ -404,4 +405,3 @@ class Token(Base):
     userId = Column(BigInteger, ForeignKey('User.userId'), primary_key=True, index=True)
     token = Column(String(300))
     expires = Column(Boolean)
-    

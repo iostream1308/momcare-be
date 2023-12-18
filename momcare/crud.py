@@ -8,6 +8,7 @@ from sqlalchemy import Interval, and_, asc, false, or_, not_, desc, asc, func, t
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from pathlib import Path
+from sqlalchemy.orm import Session
 import jwt
 from googletrans import Translator, constants
 from pprint import pprint
@@ -18,6 +19,9 @@ from .models import Role
 from momcare.models import *
 import pytz
 
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+# Account
 
 def check_registered_user(db: Session, email: str):
     user = db.query(models.User).filter(models.User.email == email).first()
@@ -184,7 +188,16 @@ def get_user_by_role(db: Session, role: int):
 def check_permission(db: Session, user_id: int, role: Role):
     return db.query(User).filter(User.userId == user_id).first().role == role
 
+def save_img_of_user(db: Session, email: str, img_path: str):
+    db.query(models.User).filter(models.User.email == email).update({"img": img_path})
+    db.commit()
+    return "success"
 
+def get_path_img_of_user(db: Session, email: str):
+    user: models.User = get_user_by_email(db, email)
+    return user.img
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Appointment
 
 def make_call_appointment(db: Session, appointment: schemas.CallAppointment):
@@ -285,6 +298,7 @@ def get_appointments_of_user(db: Session, user_id: int):
                                                     ).order_by(getattr(HospitalAppointment, "time")).all()
 
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Comment
 
 def add_doctor_comment(db: Session, comment: schemas.DoctorComment):
@@ -386,3 +400,52 @@ def get_current_user(db: Session, token: str):
 def logout(db: Session, token: str):
     db.query(models.Token).filter(models.Token.token == token).delete()
     db.commit()
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+# Message
+
+def create_conversation(db: Session, doctorId: int, patientId: int):
+    db_conv = models.Conversation(patientId=patientId,
+                          doctorId=doctorId, startTime=datetime.utcnow(),
+                          state = ConvState.KEEP)
+    db.add(db_conv)
+    db.commit()
+    db.refresh(db_conv)
+    return db_conv
+
+def get_conversation(db: Session, doctorId: int, patientId: int):
+    conv: models.Conversation = db.query(models.Conversation).filter(and_(models.Conversation.doctorId == doctorId,
+                                                                          models.Conversation.patientId == patientId)).first()
+    if conv is None:
+        conv = create_conversation(db, doctorId, patientId)
+    return conv.conversationId
+
+def count_attachment(db: Session, convid: int):
+    return db.query(models.Attachment).filter(models.Attachment.conversationId == convid).count() + 1
+
+def send_mess(db: Session, message: schemas.Message):
+    db_mess = models.Message(conversationId = message.conversationId,
+                          sender=message.sender, text=message.text,
+                          time=datetime.utcnow(),
+                          state = MessState.NOT_SEEN)
+    db.add(db_mess)
+    db.commit()
+    db.refresh(db_mess)
+    return db_mess
+
+def save_attachment(db: Session, convid: int, sender: str, file_path: str):
+    db_mess = models.Attachment(conversationId = convid,
+                          sender=sender, file=file_path,
+                          time=datetime.utcnow(),
+                          state = MessState.NOT_SEEN)
+    db.add(db_mess)
+    db.commit()
+    db.refresh(db_mess)
+    return db_mess
+
+def get_list_message_of_conversation_by_convid(db: Session, convid: str):
+    return db.query(models.Message).filter(models.Message.conversationId == convid).order_by(desc(models.Message.time)).all()
+    
+def get_list_attachment_of_conversation_by_convid(db: Session, convid: str):
+    return db.query(models.Attachment).filter(models.Attachment.conversationId == convid).order_by(desc(models.Attachment.time)).all()
