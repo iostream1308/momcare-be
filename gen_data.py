@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Column, String, Integer, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 import faker
 import random
+import hashlib
 
 random.seed(10)
 
@@ -33,10 +34,14 @@ sex = ['MALE', 'FEMALE', 'NOT_MENTION']
 for i in range(1, number_patient):
     name = fake.name()
 
+    email = name.replace(" ", "").lower() + str(random.randint(11, 11111)) + "@gmail.com"
+    p = email + "123456789"
+    hash_object = hashlib.sha256(p.encode())
+    pHash = hash_object.hexdigest()
     session.execute(User.insert().values({
         'userId': i,
-        'email': name.replace(" ", "").lower() + str(random.randint(11, 11111)) + "@gmail.com",
-        'password_hash': "9f0465940bdb268717b6116f1e0a347e0affc897d6e733541121f3943a251a1d",
+        'email': email,
+        'password_hash': pHash,
         # password: 123456789
         'role': 'PATIENT'
     }))
@@ -52,11 +57,14 @@ for i in range(1, number_patient):
 for i in range(number_patient, number_patient + number_hospital):
     name = fake.name()
 
+    email = name.replace(" ", "").lower() + str(random.randint(11, 11111)) + "@gmail.com"
+    p = email + "123456789"
+    hash_object = hashlib.sha256(p.encode())
+    pHash = hash_object.hexdigest()
     session.execute(User.insert().values({
         'userId': i,
-        'email': name.replace(" ", "").lower() + str(random.randint(11, 11111)) + "@gmail.com",
-        'password_hash': "0362795b2ee7235b3b4d28f0698a85366703eacf0ba4085796ffd980d7653337",
-        # password: 123
+        'email': email,
+        'password_hash': pHash,
         'role': 'HOSPITAL'
     }))
     session.execute(Hospital.insert().values({
@@ -71,11 +79,14 @@ degree = ['Associate Professors Doctor', 'Master', 'PhD', 'Bachelor']
 for i in range(number_patient + number_hospital, number_patient + number_hospital + number_doctor):
     name = fake.name()
 
+    email = name.replace(" ", "").lower() + str(random.randint(11, 11111)) + "@gmail.com"
+    p = email + "123456789"
+    hash_object = hashlib.sha256(p.encode())
+    pHash = hash_object.hexdigest()
     session.execute(User.insert().values({
         'userId': i,
-        'email': name.replace(" ", "").lower() + str(random.randint(11, 11111)) + "@gmail.com",
-        'password_hash': "0362795b2ee7235b3b4d28f0698a85366703eacf0ba4085796ffd980d7653337",
-        # password: 123
+        'email': email,
+        'password_hash': pHash,
         'role': 'DOCTOR'
     }))
     consultingPriceViaMessage = random.randint(14, 19) + 0.99
