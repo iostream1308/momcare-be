@@ -8,7 +8,6 @@ from sqlalchemy import Interval, and_, asc, false, or_, not_, desc, asc, func, t
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from pathlib import Path
-from sqlalchemy.orm import Session
 import jwt
 from googletrans import Translator, constants
 from pprint import pprint

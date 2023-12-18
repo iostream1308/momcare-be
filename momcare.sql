@@ -235,3 +235,25 @@ CREATE TABLE Token (
     PRIMARY KEY (token),
     CONSTRAINT fk_Token_User FOREIGN KEY (userId) REFERENCES User (userId) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `MedicalSpecialty` VALUES
+(1,'Internal Medicine','Nội Khoa'),
+(2,'Pediatrics','Nhi Khoa'),
+(3,'Surgery','Phẫu Thuật'),
+(4,'Obstetrics and Gynecology','Sản Khoa và Phụ Nữ Học'),
+(5,'Orthopedics','Chấn Thương Chỉnh Hình'),
+(6,'Dermatology','Da Liễu Học'),
+(7,'Ophthalmology','Mắt Học'),
+(8,'Otolaryngology','Tai Mũi Họng'),
+(9,'Neurology','Thần Kinh Học'),
+(10,'Psychiatry','Tâm Thần Học'),
+(11,'Anesthesiology','Sư Phạm Y Học'),
+(12,'Radiology','Xét Nghiệm Hình Ảnh Y Học'),
+(13,'Emergency Medicine','Y Học Cấp Cứu'),
+(14,'Cardiology','Tim Mạch Học'),
+(15,'Gastroenterology','Nội Tiêu Hóa Học'),
+(16,'Urology','Tiểu Nhi Học'),
+(17,'Nephrology','Thận Học'),
+(18,'Hematology','Huyết Học'),
+(19,'Oncology','Ung Thư Học'),
+(20,'Rheumatology','Thấp Khớp Học');
