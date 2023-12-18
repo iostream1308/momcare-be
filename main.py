@@ -21,6 +21,7 @@ from momcare.database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
+
 app = FastAPI()
 
 app.add_middleware(
@@ -42,6 +43,15 @@ def get_db():
 @app.get("/")
 def show():
     return "hello"
+
+@app.get("/check/")
+def get_current_user(token: str, db: Session = Depends(get_db)):
+    # credentials_exception = HTTPException(
+    #     status_code=401,
+    #     detail="Could not validate credentials",
+    #     headers={"WWW-Authenticate": "Bearer"},
+    # )
+    return crud.verify_token(db, token)
 
 @app.post("/create_patient/")
 def create_patient(patient: schemas.Patient, db: Session = Depends(get_db)):
@@ -67,13 +77,21 @@ def change_pass(email: str, new_pass: str, db: Session = Depends(get_db)):
 def hospitals(db: Session = Depends(get_db)):
     return crud.get_list_hospital(db)
 
+@app.get("/hospital/name/")
+def hospitals_by_name(name: str, db: Session = Depends(get_db)):
+    return crud.get_list_hospitals_by_name(db, name)
+
 @app.get("/hospital/{id}")
 def hospitals(id: int, db: Session = Depends(get_db)):
     return crud.get_hospital_by_id(db, id)
 
 @app.get("/login/")
 def login(email: str, password: str, db: Session = Depends(get_db)):
-    return crud.check_login(db, email, password)
+    return crud.login(db, email, password)
+
+@app.get("/logout")
+def logout(token: str):
+    return crud.logout(token)
 
 @app.get("/medspec/")
 def medicalSpecialty(db: Session = Depends(get_db)):
@@ -94,6 +112,10 @@ def medicalSpecialty_by_en(en: str, db: Session = Depends(get_db)):
 @app.get("/doctor/")
 def doctor(db: Session = Depends(get_db)):
     return crud.get_list_doctor(db)
+
+@app.get("/doctor/name/")
+def doctors_by_name(name: str, db: Session = Depends(get_db)):
+    return crud.get_list_doctors_by_name(db, name)
 
 @app.get("/doctor/{id}")
 def doctor_by_id(id: int, db: Session = Depends(get_db)):

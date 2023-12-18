@@ -4,4 +4,5 @@ mysql-connector-python
 pydantic
 requests
 SQLAlchemy
+jwt
 uvicorn
