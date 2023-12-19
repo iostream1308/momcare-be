@@ -51,8 +51,8 @@ def show():
 #account
 
 @app.get("/check/")
-def get_current_user(token: str, db: Session = Depends(get_db)):
-    return crud.verify_token(db, token)
+def get_current_user(token: str, userid: int, db: Session = Depends(get_db)):
+    return crud.verify_token(db, token, userid)
 
 @app.post("/create_patient/")
 def create_patient(patient: schemas.Patient, db: Session = Depends(get_db)):
@@ -91,8 +91,8 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
     return crud.login(db, email, password)
 
 @app.get("/logout")
-def logout(token: str):
-    return crud.logout(token)
+def logout(token: str, db: Session = Depends(get_db)):
+    return crud.logout(db, token)
 
 @app.get("/medspec/")
 def medicalSpecialty(db: Session = Depends(get_db)):

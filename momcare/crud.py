@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from sqlalchemy.orm import Session
 import jwt
-from googletrans import Translator, constants
 from pprint import pprint
 
 from . import models, schemas
@@ -147,6 +146,81 @@ def request_register_doctor(db: Session, doctor: schemas.Doctor):
         return "different hospital"
     return create_doctor(db, doctor)
 
+# Function to create a new token
+def create_token(db: Session, user_id: int, expires: bool):
+    token = db.query(models.Token).filter(models.Token.userId == user_id).first()
+    if token is not None:
+        db.query(models.Token).filter(models.Token.userId == user_id).delete()
+        db.commit()
+    delta = timedelta(minutes=15)  # Token expires in 15 minutes
+    expiration = datetime.utcnow() + delta
+    print(datetime.utcnow().timestamp())
+    print(expiration)
+    payload = {"user_id": user_id, "expires": expires, "exp": expiration.timestamp() + 25200}
+    print(payload["exp"])
+    # use user_id as secret key
+    token = jwt.encode(payload, str(user_id), algorithm="HS256")
+    db_token = models.Token(userId=user_id, token=token, expires=expires)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+    return db_token
+
+
+def login(db: Session, email: str, password: str):
+    if check_registered_user(db, email) == "not registered":
+        return "not registered"
+    user: models.User = db.query(models.User).filter(models.User.email == email).first()
+    p = email + password
+    hash_object = hashlib.sha256(p.encode())
+    pHash = hash_object.hexdigest()
+    if user.password_hash != pHash:
+        return "wrong password"
+    token: models.Token = create_token(db, user.userId, False)
+    # return object contains token and user
+    return {"token": token.token, "user": { "id": user.userId, "role": user.role }}
+
+
+# Function to verify and return the current user from the token
+def verify_token(db: Session, token: str, user_id: str):
+    try:
+        payload = jwt.decode(token, str(user_id), algorithms=["HS256"])
+        t = db.query(models.Token).filter(models.Token.token == token).first()
+        if t is None:
+            return "InvalidTokenError"
+    except jwt.ExpiredSignatureError:
+        return "ExpiredSignatureError"
+    except jwt.InvalidTokenError:
+        return "InvalidTokenError"
+    return "ok"
+
+
+def get_current_user(db: Session, token: str):
+    token_db: models.Token = db.query(models.Token).filter(models.Token.token == token).first()
+    if token_db == None:
+        return "token not exists"
+    verify = verify_token(token, token_db.userId)
+    if verify != "ok":
+        return verify
+    return db.query(models.User).filter(models.User.userId == token_db.userId).first()
+
+
+# Function to logout user and delete the token
+def logout(db: Session, token: str):
+    db.query(models.Token).filter(models.Token.token == token).delete()
+    db.commit()
+    return "ok"
+    
+    
+def change_password(db: Session, email: str, new_pass: str):
+    if check_registered_user(db, email) == "not registered":
+        return "not registered"
+    p = email + new_pass
+    hash_object = hashlib.sha256(p.encode())
+    new_p_hash = hash_object.hexdigest()
+    db.query(models.User).filter(models.User.email == email).update({"password_hash": new_p_hash})
+    db.commit()
+    return "ok"
 
 def get_list_doctor(db: Session):
     return db.query(models.Doctor).all()
@@ -162,17 +236,6 @@ def get_list_doctors_of_hospital(db: Session, hospitalid: int):
 
 def get_list_doctors_by_name(db: Session, name: str):
     return db.query(models.Doctor).filter(models.Doctor.name.like(f"%{name}%")).all()
-
-
-def change_password(db: Session, email: str, new_pass: str):
-    if check_registered_user(db, email) == "not registered":
-        return "not registered"
-    p = email + new_pass
-    hash_object = hashlib.sha256(p.encode())
-    new_p_hash = hash_object.hexdigest()
-    db.query(models.User).filter(models.User.email == email).update({"password_hash": new_p_hash})
-    db.commit()
-    return "ok"
 
 
 def get_user_by_email(db: Session, email: str):
@@ -196,6 +259,7 @@ def save_img_of_user(db: Session, email: str, img_path: str):
 def get_path_img_of_user(db: Session, email: str):
     user: models.User = get_user_by_email(db, email)
     return user.img
+
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Appointment
@@ -338,68 +402,6 @@ def get_hospital_comments_by_hospital_id(db: Session, hospital_id: int):
         res.append([comment, db.query(Patient).filter(Patient.patientId == comment.patientId).first()])
     return res[::-1]
 
-# Function to create a new token
-def create_token(db: Session, user_id: int, expires: bool):
-    delta = timedelta(minutes=15)  # Token expires in 15 minutes
-    if expires:
-        expiration = datetime.utcnow() + delta
-    else:
-        expiration = None
-    print(expiration)
-    payload = {"user_id": user_id, "expires": expires, "exp": expiration.timestamp()}
-    print(payload)
-    # use user_id as secret key
-    token = jwt.encode(payload, str(user_id), algorithm="HS256")
-    db_token = models.Token(userId=user_id, token=token, expires=expires)
-    db.add(db_token)
-    db.commit()
-    db.refresh(db_token)
-    return db_token
-
-
-def login(db: Session, email: str, password: str):
-    if check_registered_user(db, email) == "not registered":
-        return "not registered"
-    user: models.User = db.query(models.User).filter(models.User.email == email).first()
-    p = email + password
-    hash_object = hashlib.sha256(p.encode())
-    pHash = hash_object.hexdigest()
-    if user.password_hash != pHash:
-        return "wrong password"
-    token: models.Token = create_token(db, user.userId, False)
-    # return object contains token and user
-    return {"token": token.token, "user": { "id": user.userId, "role": user.role }}
-
-
-# Function to verify and return the current user from the token
-def verify_token(token: str, user_id: str):
-    try:
-        payload = jwt.decode(token, str(user_id), algorithms=["HS256"])
-        expiration_time = payload['exp']  # Lấy thời gian hết hạn từ payload
-        current_time = datetime.utcnow().timestamp()
-        if expiration_time < current_time:
-            return "ExpiredSignatureError"
-    except jwt.ExpiredSignatureError:
-        return "ExpiredSignatureError"
-    except jwt.InvalidTokenError:
-        return "InvalidTokenError"
-    return "ok"
-
-
-def get_current_user(db: Session, token: str):
-    token_db: models.Token = db.query(models.Token).filter(models.Token.token == token).first()
-    if token_db == None:
-        return "token not exists"
-    verify = verify_token(token, token_db.userId)
-    if verify != "ok":
-        return verify
-    return db.query(models.User).filter(models.User.userId == token_db.userId).first()
-
-
-# Function to logout user and delete the token
-def logout(db: Session, token: str):
-    db.query(models.Token).filter(models.Token.token == token).delete()
-    db.commit()
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------
