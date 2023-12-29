@@ -175,6 +175,17 @@ def change_state_hospital_appointment(user_id: int, hospitalAppointmentId: int, 
 def get_appointments_of_user(user_id: int, db: Session = Depends(get_db)):
     return crud.get_appointments_of_user(db, user_id)
 
+@app.get("/users/quantity")
+def get_number_users(db: Session = Depends(get_db)):
+    return crud.get_number_users(db)
+
+@app.get("/doctors/quantity")
+def get_number_doctors(db: Session = Depends(get_db)):
+    return crud.get_number_doctors(db)
+
+@app.get("/hospitals/quantity")
+def get_number_hospitals(db: Session = Depends(get_db)):
+    return crud.get_number_hospitals(db)
 
 # Comment
 

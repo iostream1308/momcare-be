@@ -324,6 +324,15 @@ def get_hospital_comments_by_hospital_id(db: Session, hospital_id: int):
         res.append([comment, db.query(Patient).filter(Patient.patientId == comment.patientId).first()])
     return res[::-1]
 
+def get_number_users(db: Session):
+    return len(db.query(User).all())
+
+def get_number_doctors(db: Session):
+    return len(db.query(Doctor).all())
+
+def get_number_hospitals(db: Session):
+    return len(db.query(Hospital).all())
+
 # Function to create a new token
 def create_token(db: Session, user_id: int, expires: bool):
     delta = timedelta(minutes=15)  # Token expires in 15 minutes
