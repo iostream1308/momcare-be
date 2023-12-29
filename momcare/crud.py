@@ -403,6 +403,34 @@ def get_hospital_comments_by_hospital_id(db: Session, hospital_id: int):
     return res[::-1]
 
 
+def get_number_users(db: Session):
+    return len(db.query(User).all())
+
+def get_number_doctors(db: Session):
+    return len(db.query(Doctor).all())
+
+def get_number_hospitals(db: Session):
+    return len(db.query(Hospital).all())
+
+# Function to create a new token
+def create_token(db: Session, user_id: int, expires: bool):
+    delta = timedelta(minutes=15)  # Token expires in 15 minutes
+    if expires:
+        expiration = datetime.utcnow() + delta
+    else:
+        expiration = None
+    print(expiration)
+    payload = {"user_id": user_id, "expires": expires, "exp": expiration.timestamp()}
+    print(payload)
+    # use user_id as secret key
+    token = jwt.encode(payload, str(user_id), algorithm="HS256")
+    db_token = models.Token(userId=user_id, token=token, expires=expires)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+    return db_token
+
+
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Message
