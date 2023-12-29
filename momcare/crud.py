@@ -8,8 +8,8 @@ from sqlalchemy import Interval, and_, asc, false, or_, not_, desc, asc, func, t
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from pathlib import Path
+from sqlalchemy.orm import Session
 import jwt
-from googletrans import Translator, constants
 from pprint import pprint
 
 from . import models, schemas
@@ -18,6 +18,9 @@ from .models import Role
 from momcare.models import *
 import pytz
 
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+# Account
 
 def check_registered_user(db: Session, email: str):
     user = db.query(models.User).filter(models.User.email == email).first()
@@ -143,6 +146,81 @@ def request_register_doctor(db: Session, doctor: schemas.Doctor):
         return "different hospital"
     return create_doctor(db, doctor)
 
+# Function to create a new token
+def create_token(db: Session, user_id: int, expires: bool):
+    token = db.query(models.Token).filter(models.Token.userId == user_id).first()
+    if token is not None:
+        db.query(models.Token).filter(models.Token.userId == user_id).delete()
+        db.commit()
+    delta = timedelta(minutes=15)  # Token expires in 15 minutes
+    expiration = datetime.utcnow() + delta
+    print(datetime.utcnow().timestamp())
+    print(expiration)
+    payload = {"user_id": user_id, "expires": expires, "exp": expiration.timestamp() + 25200}
+    print(payload["exp"])
+    # use user_id as secret key
+    token = jwt.encode(payload, str(user_id), algorithm="HS256")
+    db_token = models.Token(userId=user_id, token=token, expires=expires)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+    return db_token
+
+
+def login(db: Session, email: str, password: str):
+    if check_registered_user(db, email) == "not registered":
+        return "not registered"
+    user: models.User = db.query(models.User).filter(models.User.email == email).first()
+    p = email + password
+    hash_object = hashlib.sha256(p.encode())
+    pHash = hash_object.hexdigest()
+    if user.password_hash != pHash:
+        return "wrong password"
+    token: models.Token = create_token(db, user.userId, False)
+    # return object contains token and user
+    return {"token": token.token, "user": { "id": user.userId, "role": user.role }}
+
+
+# Function to verify and return the current user from the token
+def verify_token(db: Session, token: str, user_id: str):
+    try:
+        payload = jwt.decode(token, str(user_id), algorithms=["HS256"])
+        t = db.query(models.Token).filter(models.Token.token == token).first()
+        if t is None:
+            return "InvalidTokenError"
+    except jwt.ExpiredSignatureError:
+        return "ExpiredSignatureError"
+    except jwt.InvalidTokenError:
+        return "InvalidTokenError"
+    return "ok"
+
+
+def get_current_user(db: Session, token: str):
+    token_db: models.Token = db.query(models.Token).filter(models.Token.token == token).first()
+    if token_db == None:
+        return "token not exists"
+    verify = verify_token(token, token_db.userId)
+    if verify != "ok":
+        return verify
+    return db.query(models.User).filter(models.User.userId == token_db.userId).first()
+
+
+# Function to logout user and delete the token
+def logout(db: Session, token: str):
+    db.query(models.Token).filter(models.Token.token == token).delete()
+    db.commit()
+    return "ok"
+    
+    
+def change_password(db: Session, email: str, new_pass: str):
+    if check_registered_user(db, email) == "not registered":
+        return "not registered"
+    p = email + new_pass
+    hash_object = hashlib.sha256(p.encode())
+    new_p_hash = hash_object.hexdigest()
+    db.query(models.User).filter(models.User.email == email).update({"password_hash": new_p_hash})
+    db.commit()
+    return "ok"
 
 def get_list_doctor(db: Session):
     return db.query(models.Doctor).all()
@@ -160,17 +238,6 @@ def get_list_doctors_by_name(db: Session, name: str):
     return db.query(models.Doctor).filter(models.Doctor.name.like(f"%{name}%")).all()
 
 
-def change_password(db: Session, email: str, new_pass: str):
-    if check_registered_user(db, email) == "not registered":
-        return "not registered"
-    p = email + new_pass
-    hash_object = hashlib.sha256(p.encode())
-    new_p_hash = hash_object.hexdigest()
-    db.query(models.User).filter(models.User.email == email).update({"password_hash": new_p_hash})
-    db.commit()
-    return "ok"
-
-
 def get_user_by_email(db: Session, email: str):
     if check_registered_user(db, email) == "not registered":
         return "not registered"
@@ -184,7 +251,17 @@ def get_user_by_role(db: Session, role: int):
 def check_permission(db: Session, user_id: int, role: Role):
     return db.query(User).filter(User.userId == user_id).first().role == role
 
+def save_img_of_user(db: Session, email: str, img_path: str):
+    db.query(models.User).filter(models.User.email == email).update({"img": img_path})
+    db.commit()
+    return "success"
 
+def get_path_img_of_user(db: Session, email: str):
+    user: models.User = get_user_by_email(db, email)
+    return user.img
+
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Appointment
 
 def make_call_appointment(db: Session, appointment: schemas.CallAppointment):
@@ -285,6 +362,7 @@ def get_appointments_of_user(db: Session, user_id: int):
                                                     ).order_by(getattr(HospitalAppointment, "time")).all()
 
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Comment
 
 def add_doctor_comment(db: Session, comment: schemas.DoctorComment):
@@ -324,6 +402,7 @@ def get_hospital_comments_by_hospital_id(db: Session, hospital_id: int):
         res.append([comment, db.query(Patient).filter(Patient.patientId == comment.patientId).first()])
     return res[::-1]
 
+
 def get_number_users(db: Session):
     return len(db.query(User).all())
 
@@ -352,46 +431,51 @@ def create_token(db: Session, user_id: int, expires: bool):
     return db_token
 
 
-def login(db: Session, email: str, password: str):
-    if check_registered_user(db, email) == "not registered":
-        return "not registered"
-    user: models.User = db.query(models.User).filter(models.User.email == email).first()
-    p = email + password
-    hash_object = hashlib.sha256(p.encode())
-    pHash = hash_object.hexdigest()
-    if user.password_hash != pHash:
-        return "wrong password"
-    token: models.Token = create_token(db, user.userId, False)
-    # return object contains token and user
-    return {"token": token.token, "user": { "id": user.userId, "role": user.role }}
 
+#-------------------------------------------------------------------------------------------------------------------------------------------------------
+# Message
 
-# Function to verify and return the current user from the token
-def verify_token(token: str, user_id: str):
-    try:
-        payload = jwt.decode(token, str(user_id), algorithms=["HS256"])
-        expiration_time = payload['exp']  # Lấy thời gian hết hạn từ payload
-        current_time = datetime.utcnow().timestamp()
-        if expiration_time < current_time:
-            return "ExpiredSignatureError"
-    except jwt.ExpiredSignatureError:
-        return "ExpiredSignatureError"
-    except jwt.InvalidTokenError:
-        return "InvalidTokenError"
-    return "ok"
-
-
-def get_current_user(db: Session, token: str):
-    token_db: models.Token = db.query(models.Token).filter(models.Token.token == token).first()
-    if token_db == None:
-        return "token not exists"
-    verify = verify_token(token, token_db.userId)
-    if verify != "ok":
-        return verify
-    return db.query(models.User).filter(models.User.userId == token_db.userId).first()
-
-
-# Function to logout user and delete the token
-def logout(db: Session, token: str):
-    db.query(models.Token).filter(models.Token.token == token).delete()
+def create_conversation(db: Session, doctorId: int, patientId: int):
+    db_conv = models.Conversation(patientId=patientId,
+                          doctorId=doctorId, startTime=datetime.utcnow(),
+                          state = ConvState.KEEP)
+    db.add(db_conv)
     db.commit()
+    db.refresh(db_conv)
+    return db_conv
+
+def get_conversation(db: Session, doctorId: int, patientId: int):
+    conv: models.Conversation = db.query(models.Conversation).filter(and_(models.Conversation.doctorId == doctorId,
+                                                                          models.Conversation.patientId == patientId)).first()
+    if conv is None:
+        conv = create_conversation(db, doctorId, patientId)
+    return conv.conversationId
+
+def count_attachment(db: Session, convid: int):
+    return db.query(models.Attachment).filter(models.Attachment.conversationId == convid).count() + 1
+
+def send_mess(db: Session, message: schemas.Message):
+    db_mess = models.Message(conversationId = message.conversationId,
+                          sender=message.sender, text=message.text,
+                          time=datetime.utcnow(),
+                          state = MessState.NOT_SEEN)
+    db.add(db_mess)
+    db.commit()
+    db.refresh(db_mess)
+    return db_mess
+
+def save_attachment(db: Session, convid: int, sender: str, file_path: str):
+    db_mess = models.Attachment(conversationId = convid,
+                          sender=sender, file=file_path,
+                          time=datetime.utcnow(),
+                          state = MessState.NOT_SEEN)
+    db.add(db_mess)
+    db.commit()
+    db.refresh(db_mess)
+    return db_mess
+
+def get_list_message_of_conversation_by_convid(db: Session, convid: str):
+    return db.query(models.Message).filter(models.Message.conversationId == convid).order_by(desc(models.Message.time)).all()
+    
+def get_list_attachment_of_conversation_by_convid(db: Session, convid: str):
+    return db.query(models.Attachment).filter(models.Attachment.conversationId == convid).order_by(desc(models.Attachment.time)).all()
