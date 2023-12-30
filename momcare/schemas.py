@@ -19,6 +19,19 @@ class DoctorUpdate(BaseModel):
     consultingPriceViaCall: float = None
     point: float = None
 
+class PatientUpdate(BaseModel):
+    name: str = None
+    age: int = None
+    sex: Sex = None
+    phone: str = None
+    address: str = None
+
+class HospitalUpdate(BaseModel):
+    name: str = None
+    address: str = None
+    workingTime: str = None
+    point: float = None
+
 class UserBase(BaseModel):
     email: str
     role: Role

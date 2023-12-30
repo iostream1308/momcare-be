@@ -274,6 +274,39 @@ def update_doctor(db: Session, id: int, doctor_update: schemas.DoctorUpdate):
     else:
         return "Doctor not found"
 
+def update_patient(db: Session, id: int, patient_update: schemas.PatientUpdate):
+    patient = db.query(Patient).filter(Patient.patientId == id).first()
+
+    if patient:
+        db.query(models.Patient).filter(Patient.patientId == id).update({
+            "name": patient_update.name if patient_update.name != None else patient.name,
+            "age": patient_update.age if patient_update.age != None else patient.age,
+            "sex": patient_update.sex if patient_update.sex != None else patient.sex,
+            "phone": patient_update.phone if patient_update.phone != None else patient.phone,
+            "address": patient_update.address if patient_update.address != None else patient.address,
+        })
+        db.commit()
+        db.refresh(patient)
+        return patient
+    else:
+        return "Patient not found"
+    
+def update_hospital(db: Session, id: int, hospital_update: schemas.HospitalUpdate):
+    hospital = db.query(Hospital).filter(Hospital.hospitalId == id).first()
+
+    if hospital:
+        db.query(models.Hospital).filter(Hospital.hospitalId == id).update({
+            "name": hospital_update.name if hospital_update.name != None else hospital.name,
+            "address": hospital_update.address if hospital_update.address != None else hospital.address,
+            "workingTime": hospital_update.workingTime if hospital_update.workingTime != None else hospital.workingTime,
+            "point": hospital_update.point if hospital_update.point != None else hospital.point,
+        })
+        db.commit()
+        db.refresh(hospital)
+        return hospital
+    else:
+        return "Hospital not found"
+
 def get_user_by_email(db: Session, email: str):
     if check_registered_user(db, email) == "not registered":
         return "not registered"
