@@ -8,7 +8,7 @@ install python
 
 or
 
-```pip3 install -r requirements.txt```
+```pip3 install -r requirement.txt```
 
 (with python3)
 
