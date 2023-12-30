@@ -70,6 +70,10 @@ def create_medspec(medspec: schemas.MedicalSpecialty, db: Session = Depends(get_
 def create_doctor(doctor: schemas.Doctor, db: Session = Depends(get_db)):
     return crud.request_register_doctor(db, doctor)
 
+@app.put("/doctors/{id}")
+def update_doctor(id: int, doctor_update: schemas.DoctorUpdate, db: Session = Depends(get_db)):
+    return crud.update_doctor(db, id, doctor_update)
+
 @app.post("/change_pass/")
 def change_pass(email: str, new_pass: str, db: Session = Depends(get_db)):
     return crud.change_password(db, email, new_pass)
