@@ -5,6 +5,20 @@ from datetime import datetime, date
 
 from .models import Role, Sex, ConvState, MessState, AppoState, Service, InvoiceStatus, PaymentStatus, PaymentMethod
 
+class DoctorUpdate(BaseModel):
+    creatorRole: Role
+    creatorId: int
+    name: str = None
+    age: int = None
+    sex: Sex = None
+    phone: str = None
+    medicalSpecialtyId: int = None
+    hospitalId: int = None
+    degree: str = None
+    consultingPriceViaMessage: float = None
+    consultingPriceViaCall: float = None
+    point: float = None
+
 class UserBase(BaseModel):
     email: str
     role: Role

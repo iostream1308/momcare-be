@@ -237,6 +237,42 @@ def get_list_doctors_of_hospital(db: Session, hospitalid: int):
 def get_list_doctors_by_name(db: Session, name: str):
     return db.query(models.Doctor).filter(models.Doctor.name.like(f"%{name}%")).all()
 
+def update_doctor(db: Session, id: int, doctor_update: schemas.DoctorUpdate):
+    if doctor_update.creatorRole == Role.PATIENT:
+        return "not permission"
+    if (doctor_update.hospitalId != None) and (
+        get_hospital_by_id(db, doctor_update.hospitalId) == None):
+        return "hospital not exists"
+    if (doctor_update.medicalSpecialtyId != None) and (
+        get_medicalSpecialty_by_id(db, doctor_update.medicalSpecialtyId)) == None:
+        return "medical specialty not exists"
+    
+    doctor = db.query(Doctor).filter(Doctor.doctorId == id).first()
+
+    if doctor_update.creatorRole == Role.HOSPITAL and doctor_update.creatorId != doctor.hospitalId:
+        return "not permission"
+    
+    if doctor_update.creatorRole == Role.DOCTOR and doctor_update.creatorId != doctor.doctorId:
+        return "not permission"
+
+    if doctor:
+        db.query(models.Doctor).filter(Doctor.doctorId == id).update({
+            "name": doctor_update.name if doctor_update.name != None else doctor.name,
+            "age": doctor_update.age if doctor_update.age != None else doctor.age,
+            "sex": doctor_update.sex if doctor_update.sex != None else doctor.sex,
+            "phone": doctor_update.phone if doctor_update.phone != None else doctor.phone,
+            "medicalSpecialtyId": doctor_update.medicalSpecialtyId if doctor_update.medicalSpecialtyId != None else doctor.medicalSpecialtyId,
+            "hospitalId": doctor_update.hospitalId if doctor_update.hospitalId != None else doctor.hospitalId,
+            "degree": doctor_update.degree if doctor_update.degree != None else doctor.degree,
+            "consultingPriceViaMessage": doctor_update.consultingPriceViaMessage if doctor_update.consultingPriceViaMessage != None else doctor.consultingPriceViaMessage,
+            "consultingPriceViaCall": doctor_update.consultingPriceViaCall if doctor_update.consultingPriceViaCall != None else doctor.consultingPriceViaCall,
+            "point": doctor_update.point if doctor_update.point != None else doctor.point,
+        })
+        db.commit()
+        db.refresh(doctor)
+        return doctor
+    else:
+        return "Doctor not found"
 
 def get_user_by_email(db: Session, email: str):
     if check_registered_user(db, email) == "not registered":
