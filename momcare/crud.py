@@ -17,7 +17,7 @@ from .models import Role
 
 from momcare.models import *
 import pytz
-
+from sqlalchemy.orm import load_only
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------
 # Account
@@ -291,6 +291,12 @@ def update_patient(db: Session, id: int, patient_update: schemas.PatientUpdate):
     else:
         return "Patient not found"
     
+def get_patient_by_id(db: Session, id: int):
+    patient = db.query(Patient).filter(Patient.patientId == id).first()
+    user = db.query(User).filter(User.userId == patient.userId).options(
+        load_only(User.email, User.role, User.googleId)).first()
+    return {patient, user}
+
 def update_hospital(db: Session, id: int, hospital_update: schemas.HospitalUpdate):
     hospital = db.query(Hospital).filter(Hospital.hospitalId == id).first()
 
