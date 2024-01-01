@@ -78,6 +78,17 @@ def get_list_hospitals_by_name(db: Session, name: str):
 def get_hospital_by_id(db: Session, id: int):
     return db.query(models.Hospital).filter(models.Hospital.hospitalId == id).first()
 
+def get_hospital_by_userId(db: Session, userId: int):
+    user = db.query(User).filter(User.userId == userId).options(
+        load_only(User.email, User.role, User.googleId)).first()
+    hospital = db.query(models.Hospital).filter(models.Hospital.userId == userId).first()
+    return {'hospital': hospital, 'user': user}
+
+def get_doctor_by_userId(db: Session, userId: int):
+    user = db.query(User).filter(User.userId == userId).options(
+        load_only(User.email, User.role, User.googleId)).first()
+    doctor = db.query(models.Doctor).filter(models.Doctor.userId == userId).first()
+    return {'doctor': doctor, 'user': user}
 
 def check_registered_medical_specialty(db: Session, medSpec: schemas.MedicalSpecialty):
     ms = db.query(models.MedicalSpecialty).filter(and_(models.MedicalSpecialty.englishName == medSpec.englishName,
