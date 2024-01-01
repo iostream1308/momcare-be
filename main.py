@@ -98,9 +98,9 @@ def hospitals(db: Session = Depends(get_db)):
 def hospitals_by_name(name: str, db: Session = Depends(get_db)):
     return crud.get_list_hospitals_by_name(db, name)
 
-@app.get("/hospital/{id}")
-def hospitals(id: int, db: Session = Depends(get_db)):
-    return crud.get_hospital_by_id(db, id)
+@app.get("/hospital/{userId}")
+def hospitals(userId: int, db: Session = Depends(get_db)):
+    return crud.get_hospital_by_userId(db, userId)
 
 @app.get("/login/")
 def login(email: str, password: str, db: Session = Depends(get_db)):
@@ -134,9 +134,9 @@ def doctor(db: Session = Depends(get_db)):
 def doctors_by_name(name: str, db: Session = Depends(get_db)):
     return crud.get_list_doctors_by_name(db, name)
 
-@app.get("/doctor/{id}")
-def doctor_by_id(id: int, db: Session = Depends(get_db)):
-    return crud.get_doctor_by_id(db, id)
+@app.get("/doctor/{userId}")
+def doctor_by_userId(userId: int, db: Session = Depends(get_db)):
+    return crud.get_doctor_by_userId(db, userId)
 
 @app.get("/doctor/hospital/{id}")
 def doctor_by_hospitalid(id: int, db: Session = Depends(get_db)):
