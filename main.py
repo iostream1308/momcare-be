@@ -78,9 +78,9 @@ def update_doctor(id: int, doctor_update: schemas.DoctorUpdate, db: Session = De
 def update_patient(id: int, patient_update: schemas.PatientUpdate, db: Session = Depends(get_db)):
     return crud.update_patient(db, id, patient_update)
 
-@app.get("/patients/{id}")
-def get_patient_by_id(id: int, db: Session = Depends(get_db)):
-    return crud.get_patient_by_id(db, id)
+@app.get("/patients/{userId}")
+def get_patient_by_userId(userId: int, db: Session = Depends(get_db)):
+    return crud.get_patient_by_userId(db, userId)
 
 @app.put("/hospitals/{id}")
 def update_hospital(id: int, hospital_update: schemas.HospitalUpdate, db: Session = Depends(get_db)):

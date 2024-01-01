@@ -291,10 +291,10 @@ def update_patient(db: Session, id: int, patient_update: schemas.PatientUpdate):
     else:
         return "Patient not found"
     
-def get_patient_by_id(db: Session, id: int):
-    patient = db.query(Patient).filter(Patient.patientId == id).first()
-    user = db.query(User).filter(User.userId == patient.userId).options(
+def get_patient_by_userId(db: Session, userId: int):
+    user = db.query(User).filter(User.userId == userId).options(
         load_only(User.email, User.role, User.googleId)).first()
+    patient = db.query(Patient).filter(Patient.userId == userId).first()
     return {'patient': patient, 'user': user}
 
 def update_hospital(db: Session, id: int, hospital_update: schemas.HospitalUpdate):
