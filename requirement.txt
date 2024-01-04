@@ -8,3 +8,4 @@ jwt
 uvicorn
 faker
 PyJWT
+python-multipart

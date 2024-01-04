@@ -498,6 +498,18 @@ def get_number_doctors(db: Session):
 def get_number_hospitals(db: Session):
     return len(db.query(Hospital).all())
 
+def get_top_doctors_by_page(db: Session, num_per_page: int, page: int):
+    doctors: models.Doctor = db.query(models.Doctor).order_by(desc(models.Doctor.point)).all()
+    if page > len(doctors) / num_per_page:
+        return "invalid page"
+    start = num_per_page * (page - 1) + 1
+    end = min(num_per_page * page, len(doctors))
+    list_of_page = []
+    for i in range(start-1, end):
+        list_of_page.append(doctors[i])
+    return list_of_page
+          
+
 # Function to create a new token
 def create_token(db: Session, user_id: int, expires: bool):
     delta = timedelta(minutes=15)  # Token expires in 15 minutes

@@ -142,6 +142,27 @@ def doctor_by_userId(userId: int, db: Session = Depends(get_db)):
 def doctor_by_hospitalid(id: int, db: Session = Depends(get_db)):
     return crud.get_list_doctors_of_hospital(db, id)
 
+@app.get("/doctor/top/{page}")
+def top_doctors_by_page(page: int, num_per_page: int, db: Session = Depends(get_db)):
+    num_of_doctors = crud.get_number_doctors(db)
+    if page > num_of_doctors / num_per_page:
+        return "invalid page"
+    res = {}
+    res['data'] = crud.get_top_doctors_by_page(db, num_per_page, page)
+    res['paging'] = {}
+    if page == 1:
+        res['paging']['previous'] = None
+    else:
+        res['paging']['previous'] = "http://127.0.0.1:8000/doctor/top/" + str(page-1) + "?num_per_page=" + str(num_per_page)
+    if page == int(num_of_doctors / num_per_page):
+        res['paging']['next'] = None
+    else:
+        res['paging']['next'] = "http://127.0.0.1:8000/doctor/top/" + str(page+1) + "?num_per_page=" + str(num_per_page)
+    return res
+                                    
+    
+
+
 @app.get("/user/{email}")
 def user_by_email(email: str, db: Session = Depends(get_db)):
     return crud.get_user_by_email(db, email)
